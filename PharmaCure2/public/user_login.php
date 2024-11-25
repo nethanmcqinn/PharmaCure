@@ -1,5 +1,7 @@
 <!-- user_login.php -->
 <?php session_start(); ?>
+<?php include '../includes/navbar.php'; ?>
+
 <?php include '../config/db.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
