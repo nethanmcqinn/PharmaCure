@@ -1,4 +1,9 @@
-<?php include '../config/db.php'; ?>
+<?php 
+session_start(); // Start the session
+include '../config/db.php'; 
+include '../includes/navbar.php'; // Include the navigation menu
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,12 +15,16 @@
 </head>
 <body>
 
-<!-- Include Navigation Menu -->
-<?php include '../includes/navbar.php'; ?>
-
 <div class="container mt-4">
     <h1>Welcome to PharmaCure</h1>
-    <p>Your one-stop shop for pharmaceutical products.</p>
+
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <div class="alert alert-success">
+            Hello, <?php echo htmlspecialchars($_SESSION['name']); ?>! Welcome back to PharmaCure.
+        </div>
+    <?php else: ?>
+        <p>Your one-stop shop for pharmaceutical products.</p>
+    <?php endif; ?>
 
     <h2>Featured Products</h2>
     <div class="row">
@@ -43,8 +52,8 @@
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="../cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="../stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 </body>
 </html>

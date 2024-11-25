@@ -20,15 +20,32 @@
             <li class="nav-item">
                 <a class="nav-link" href="../public/contact.php">Contact Us</a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link" href="../public/user_register.php">Register</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="../public/user_login.php">Login</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="../admin/admin_login.php">Admin Login</a>
-            </li>
+
+            <?php if (isset($_SESSION['user_id'])): ?>
+                <!-- User is logged in -->
+                <li class='nav-item'>
+                    <a class='nav-link' href='../public/user_profile.php'>Profile</a> <!-- Link to user profile -->
+                </li>
+                <?php if ($_SESSION['role_id'] == 1): ?> <!-- Check if user is admin -->
+                    <li class='nav-item'>
+                        <a class='nav-link' href='../public/admin_dashboard.php'>Admin Dashboard</a> <!-- Link to admin dashboard -->
+                    </li>
+                <?php endif; ?>
+                <li class='nav-item'>
+                    <span class='navbar-text'>Welcome, <?php echo htmlspecialchars($_SESSION['name']); ?></span> <!-- Display user's name -->
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' href='../public/user_logout.php'>Logout</a> <!-- Logout link -->
+                </li>
+            <?php else: ?>
+                <!-- User is not logged in -->
+                <li class='nav-item'>
+                    <a class='nav-link' href='../public/user_register.php'>Register</a> <!-- Register link -->
+                </li>
+                <li class='nav-item'>
+                    <a class='nav-link' href='../public/user_login.php'>Login</a> <!-- Login link -->
+                </li>
+            <?php endif; ?>
         </ul>
     </div>
 </nav>
