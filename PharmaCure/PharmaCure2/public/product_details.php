@@ -1,7 +1,6 @@
 <?php 
 session_start(); // Start the session
 include '../config/db.php'; // Include your database connection
-include '../includes/navbar.php'; // Include the navigation menu
 
 // Check if product ID is provided
 if (!isset($_GET['id'])) {
@@ -22,13 +21,36 @@ if (!$product) {
     exit();
 }
 
-// Process review submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// Handle Add to Cart action
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_to_cart') {
+    $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
+
+    // Initialize cart in session if it doesn't exist
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
+    }
+
+    // Add or update product in cart
+    if ($quantity > 0) {
+        if (isset($_SESSION['cart'][$productId])) {
+            $_SESSION['cart'][$productId] += $quantity; // Update quantity if already in cart
+        } else {
+            $_SESSION['cart'][$productId] = $quantity; // Add new product to cart
+        }
+        
+        echo "<div class='alert alert-success'>Product added to cart!</div>";
+    } else {
+        echo "<div class='alert alert-danger'>Invalid quantity.</div>";
+    }
+}
+
+// Handle Review Submission action
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] === 'submit_review') {
     if (!isset($_SESSION['user_id'])) {
         echo "<div class='alert alert-danger'>You must be logged in to submit a review.</div>";
     } else {
-        $userId = $_SESSION['user_id']; // Get logged-in user's ID
-        $reviewText = trim($_POST['review_text']);
+        $userId = $_SESSION['user_id'];
+        $reviewText = isset($_POST['review_text']) ? trim($_POST['review_text']) : '';
 
         // Insert review into the database
         $stmtReview = $pdo->prepare("INSERT INTO reviews (product_id, user_id, review_text) VALUES (?, ?, ?)");
@@ -78,22 +100,20 @@ $reviews = $stmtReviews->fetchAll(PDO::FETCH_ASSOC);
             
             <!-- Add to Cart Form -->
             <form action="product_details.php?id=<?php echo $productId; ?>" method="POST">
+                <input type="hidden" name="action" value="add_to_cart">
                 <div class="form-group">
                     <label for="quantity">Quantity:</label>
                     <input type="number" name="quantity" class="form-control" value="1" min="1" required>
                 </div>
-                <button type="submit" name="add_to_cart" class="btn btn-primary">Add to Cart</button>
+                <button type="submit" class="btn btn-primary">Add to Cart</button>
             </form>
-
-            <?php if (isset($successMessage)): ?>
-                <div class="alert alert-success"><?php echo htmlspecialchars($successMessage); ?></div>
-            <?php endif; ?>
         </div>
     </div>
 
     <!-- Review Submission Form -->
     <h2>Add Your Review</h2>
     <form action="product_details.php?id=<?php echo $productId; ?>" method="POST">
+        <input type="hidden" name="action" value="submit_review">
         <div class="form-group">
             <label for="review_text">Your Review:</label>
             <textarea name="review_text" class="form-control" required></textarea>

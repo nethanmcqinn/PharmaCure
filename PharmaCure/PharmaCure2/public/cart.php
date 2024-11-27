@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Ensure the new quantity is at least 1
         if ($newQuantity > 0 && isset($_SESSION['cart'][$updateId])) {
-            $_SESSION['cart'][$updateId] = $newQuantity;
+            $_SESSION['cart'][$updateId] = $newQuantity; // Update quantity if already in cart
         }
 
         // Redirect to the same page to refresh the cart
@@ -116,8 +116,8 @@ $productsInCart = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="../cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script> 
+<script src="../stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 </body>
 </html>
