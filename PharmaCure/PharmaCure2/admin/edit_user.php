@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <div class="container mt-4">
     <h1>Edit User</h1>
-
+    <a href="admin_dashboard.php" class="btn btn-secondary">Back to Dashboard</a>
     <?php if (isset($error)): ?>
         <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
     <?php endif; ?>

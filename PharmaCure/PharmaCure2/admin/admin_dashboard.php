@@ -5,7 +5,7 @@ include '../includes/navbar.php'; // Include the navigation menu
 
 // Check if the user is logged in and is an admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: user_login.php"); // Redirect to login if not logged in or not an admin
+    echo "<script>alert('You do not have access to this page.'); window.location.href = 'user_login.php';</script>";
     exit();
 }
 
@@ -65,6 +65,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
     exit();
 }
 
+// Handle user status and role updates
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['user_id']) && isset($_POST['action'])) {
+        $userId = $_POST['user_id'];
+        
+        if ($_POST['action'] === 'deactivate') {
+            // Deactivate the user
+            $stmtDeactivate = $pdo->prepare("UPDATE users SET status = 'deactivated' WHERE user_id = ?");
+            $stmtDeactivate->execute([$userId]);
+        } elseif ($_POST['action'] === 'activate') {
+            // Activate the user
+            $stmtActivate = $pdo->prepare("UPDATE users SET status = 'active' WHERE user_id = ?");
+            $stmtActivate->execute([$userId]);
+        } elseif ($_POST['action'] === 'update_role' && isset($_POST['new_role'])) {
+            // Update the user's role
+            $newRole = $_POST['new_role'];
+            $stmtUpdateRole = $pdo->prepare("UPDATE users SET role = ? WHERE user_id = ?");
+            $stmtUpdateRole->execute([$newRole, $userId]);
+        }
+
+        header("Location: admin_dashboard.php");
+        exit();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -76,10 +100,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-
 <div class="container mt-4">
     <h1>Admin Dashboard</h1>
 
+    <!-- Manage Users -->
     <h2>Manage Users</h2>
     <table class="table table-bordered">
         <thead>
@@ -87,7 +111,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
                 <th>User ID</th>
                 <th>Email</th>
                 <th>Name</th>
-                <th>Role</th> <!-- New Role Column -->
+                <th>Role</th>
+                <th>Status</th>
                 <th>Profile Photo</th>
                 <th>Actions</th>
             </tr>
@@ -98,8 +123,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
                     <td><?php echo htmlspecialchars($user['user_id']); ?></td>
                     <td><?php echo htmlspecialchars($user['email']); ?></td>
                     <td><?php echo htmlspecialchars($user['name']); ?></td>
+                    <td><?php echo htmlspecialchars($user['role']); ?></td>
                     <td>
-                        <?php echo htmlspecialchars($user['role']); ?> <!-- Display the user's role -->
+                        <span class="badge badge-<?php echo ($user['status'] ?? 'inactive') === 'active' ? 'success' : 'secondary'; ?>">
+                            <?php echo ucfirst($user['status'] ?? 'inactive'); ?>
+                        </span>
                     </td>
                     <td>
                         <?php if ($user['profile_photo']): ?>
@@ -109,15 +137,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
                         <?php endif; ?>
                     </td>
                     <td>
-                        <!-- Add links for editing and deleting users -->
-                        <a href="edit_user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
-                        <a href="delete_user.php?id=<?php echo $user['user_id']; ?>" class="btn btn-danger btn-sm">Delete</a>
+                        <form method="POST" action="" style="display:inline;">
+                            <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>">
+                            <?php if ($user['status'] === 'active'): ?>
+                                <button type="submit" name="action" value="deactivate" class="btn btn-warning btn-sm">Deactivate</button>
+                            <?php else: ?>
+                                <button type="submit" name="action" value="activate" class="btn btn-success btn-sm">Activate</button>
+                            <?php endif; ?>
+                        </form>
+                        <form method="POST" action="" style="display:inline;">
+                            <input type="hidden" name="user_id" value="<?php echo $user['user_id']; ?>">
+                            <select name="new_role" class="form-control form-control-sm d-inline" style="width:auto; display:inline;">
+                                <option value="user" <?php echo $user['role'] === 'user' ? 'selected' : ''; ?>>User</option>
+                                <option value="admin" <?php echo $user['role'] === 'admin' ? 'selected' : ''; ?>>Admin</option>
+                            </select>
+                            <button type="submit" name="action" value="update_role" class="btn btn-primary btn-sm">Update Role</button>
+                        </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 
+    <!-- Manage Products -->
     <h2>Manage Products</h2>
     <table class="table table-bordered">
         <thead>
@@ -139,9 +181,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
                     <td><?php echo htmlspecialchars($product['description']); ?></td>
                     <td>$<?php echo htmlspecialchars($product['price']); ?></td>
                     <td><?php echo htmlspecialchars($product['stock_quantity']); ?></td>
-                    <td><img src="<?php echo htmlspecialchars($product['main_image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="max-width: 50px;"></td>
                     <td>
-                        <!-- Add links for editing and deleting products -->
+                        <img src="<?php echo htmlspecialchars($product['main_image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>" style="max-width: 50px;">
+                    </td>
+                    <td>
                         <a href="edit_product.php?id=<?php echo $product['product_id']; ?>" class="btn btn-warning btn-sm">Edit</a>
                         <a href="delete_product.php?id=<?php echo $product['product_id']; ?>" class="btn btn-danger btn-sm">Delete</a>
                     </td>
@@ -149,8 +192,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
             <?php endforeach; ?>
         </tbody>
     </table>
-
-    <!-- Provide a link to add new users or products -->
+    
+    <!-- Link for Adding -->
     <a href="add_user.php" class="btn btn-primary">Add User</a> 
     <a href="add_product.php" class="btn btn-primary">Add Product</a> 
 
@@ -160,8 +203,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
         <thead>
             <tr>
                 <th>Order ID</th>
-                <th>Customer Name</th>
-                <th>Order Date</th>
+                <th>User</th>
+                <th>Date</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -172,87 +215,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) 
                     <td><?php echo htmlspecialchars($order['user_name']); ?></td>
                     <td><?php echo htmlspecialchars($order['created_at']); ?></td>
                     <td>
-                        <!-- Cancel Order Form -->
                         <form method="POST" action="">
-                            <input type="hidden" name="cancel_order_id" value="<?php echo htmlspecialchars($order['order_id']); ?>">
-                            <button type="submit" class="btn btn-danger btn-sm">Cancel Order</button>
+                            <input type="hidden" name="cancel_order_id" value="<?php echo $order['order_id']; ?>">
+                            <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
                         </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
-
-            <?php if (empty($orders)): ?>
-                <tr><td colspan="4">No orders found.</td></tr>
-            <?php endif; ?>
         </tbody>
     </table>
 
     <!-- Reviews Section -->
-    <h2>User Reviews</h2>
-    <table class="table table-striped">
+    <h2>Customer Reviews</h2>
+    <table class="table table-bordered">
         <thead>
             <tr>
                 <th>Review ID</th>
-                <th>Product Name</th>
-                <th>User Name</th>
+                <th>User</th>
+                <th>Product</th>
                 <th>Review Text</th>
-                <th>Created At</th>
+                <th>Date</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            <?php if (count($reviews) > 0): ?>
-                <?php foreach ($reviews as $review): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($review['review_id']); ?></td>
-                        <td><?php echo htmlspecialchars($review['product_name']); ?></td>
-                        <td><?php echo htmlspecialchars($review['user_name']); ?></td>
-                        <td><?php echo nl2br(htmlspecialchars($review['review_text'])); ?></td>
-                        <td><?php echo htmlspecialchars($review['created_at']); ?></td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <tr><td colspan="5">No reviews found.</td></tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
-    <h2>User Reviews</h2>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Review ID</th>
-            <th>Product Name</th>
-            <th>User Name</th>
-            <th>Review Text</th>
-            <th>Created At</th>
-            <th>Actions</th> <!-- Actions Column for Delete -->
-        </tr>
-    </thead>
-    <tbody>
-        <?php if (count($reviews) > 0): ?>
             <?php foreach ($reviews as $review): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($review['review_id']); ?></td>
-                    <td><?php echo htmlspecialchars($review['product_name']); ?></td>
                     <td><?php echo htmlspecialchars($review['user_name']); ?></td>
-                    <td><?php echo nl2br(htmlspecialchars($review['review_text'])); ?></td>
+                    <td><?php echo htmlspecialchars($review['product_name']); ?></td>
+                    <td><?php echo htmlspecialchars($review['review_text']); ?></td>
                     <td><?php echo htmlspecialchars($review['created_at']); ?></td>
                     <td>
-                        <!-- Delete Review Form -->
-                        <form method="POST" action="" class="d-inline">
-                            <input type="hidden" name="delete_review_id" value="<?php echo htmlspecialchars($review['review_id']); ?>">
+                        <form method="POST" action="" style="display:inline;">
+                            <input type="hidden" name="delete_review_id" value="<?php echo $review['review_id']; ?>">
                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                         </form>
                     </td>
                 </tr>
             <?php endforeach; ?>
-        <?php else: ?>
-            <tr><td colspan="6">No reviews found.</td></tr>
-        <?php endif; ?>
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="../cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="../stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</div>
+
 </body>
 </html>

@@ -12,6 +12,35 @@ include '../includes/navbar.php'; // Include the navigation menu
     <title>PharmaCure - Home</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="../styles.css"> <!-- Link to your custom CSS file -->
+    <style>
+        /* Custom styles for 3D product cards */
+        .product-card {
+            background-color: #ffffff;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+            transition: transform 0.3s, box-shadow 0.3s; /* Smooth transition for hover effect */
+            margin-bottom: 20px; /* Space between cards */
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+        }
+
+        .product-image {
+            border-top-left-radius: 10px; /* Match card's rounded corners */
+            border-top-right-radius: 10px; /* Match card's rounded corners */
+        }
+
+        .product-title {
+            font-size: 1.5em; /* Larger font size for title */
+        }
+
+        .product-price {
+            color: #28a745; /* Green color for price */
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
@@ -30,17 +59,22 @@ include '../includes/navbar.php'; // Include the navigation menu
     <div class="row">
 
         <?php
-        // Fetch products from the database
-        $stmt = $pdo->query("SELECT * FROM Products LIMIT 6"); // Adjust limit as necessary
+        // Fetch products from the database along with categories and brands
+        $stmt = $pdo->query("SELECT p.*, c.name, b.name FROM products p 
+                              LEFT JOIN categories c ON p.category_id = c.category_id 
+                              LEFT JOIN brands b ON p.brand_id = b.brand_id 
+                              LIMIT 6"); // Adjust limit as necessary
         
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             echo '<div class="col-md-4">';
-            echo '<div class="card mb-4">';
-            echo '<img src="' . htmlspecialchars($row['main_image']) . '" class="card-img-top" alt="' . htmlspecialchars($row['name']) . '">';
+            echo '<div class="product-card">'; // Use the new product-card class
+            echo '<img src="' . htmlspecialchars($row['main_image']) . '" class="card-img-top product-image" alt="' . htmlspecialchars($row['name']) . '">';
             echo '<div class="card-body">';
-            echo '<h5 class="card-title">' . htmlspecialchars($row['name']) . '</h5>';
+            echo '<h5 class="card-title product-title">' . htmlspecialchars($row['name']) . '</h5>';
             echo '<p class="card-text">' . htmlspecialchars($row['description']) . '</p>';
-            echo '<p class="card-text"><strong>Price: $' . htmlspecialchars($row['price']) . '</strong></p>';
+            echo '<p class="card-text product-price">Price: $' . htmlspecialchars($row['price']) . '</p>';
+            echo '<p class="card-text"><strong>Category:</strong> ' . htmlspecialchars($row['name']) . '</p>';
+            echo '<p class="card-text"><strong>Brand:</strong> ' . htmlspecialchars($row['name']) . '</p>';
             echo '<a href="product_details.php?id=' . $row['product_id'] . '" class="btn btn-primary">View Details</a>'; // Link to product details page
             echo '</div>';
             echo '</div>';

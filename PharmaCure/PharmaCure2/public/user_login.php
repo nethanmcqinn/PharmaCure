@@ -2,6 +2,7 @@
 session_start(); // Start the session
 include '../config/db.php'; // Include your database connection
 include '../includes/navbar.php';
+
 // Process user login when form is submitted
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
@@ -14,18 +15,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Verify user and password
     if ($user && password_verify($password, $user['password_hash'])) {
-        // Set session variables
-        $_SESSION['user_id'] = $user['user_id'];
-        $_SESSION['name'] = $user['name'];
-        $_SESSION['role'] = $user['role']; // Store role ID
+        // Check if the account is active
+        if ($user['status'] === 'active') {
+            // Set session variables
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['name'] = $user['name'];
+            $_SESSION['role'] = $user['role']; // Store role ID
 
-        // Redirect based on role
-        if ($user['role'] === 'admin') {
-            header("Location: ../admin/admin_dashboard.php");
+            // Redirect based on role
+            if ($user['role'] === 'admin') {
+                header("Location: ../admin/admin_dashboard.php");
+            } else {
+                header("Location: user_profile.php");
+            }
+            exit();
         } else {
-            header("Location: user_profile.php");
+            $loginError = "Your account is deactivated. Please contact the administrator.";
         }
-        exit();
     } else {
         $loginError = "Invalid email or password.";
     }
@@ -64,8 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </form>
 
     <p class="mt-3">Don't have an account? <a href="../public/user_register.php">Register here</a>.</p>
-    
-   
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

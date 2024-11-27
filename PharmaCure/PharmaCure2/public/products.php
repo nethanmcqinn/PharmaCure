@@ -8,12 +8,19 @@ if (isset($_GET['search'])) {
     $search = $_GET['search'];
 }
 
-// Fetch all products from the database based on search query
+// Fetch all products from the database based on search query along with categories and brands
 if ($search) {
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE name LIKE ? OR description LIKE ?");
+    $stmt = $pdo->prepare("SELECT p.*, c.name AS category_name, b.name AS brand_name 
+                            FROM products p 
+                            LEFT JOIN categories c ON p.category_id = c.category_id 
+                            LEFT JOIN brands b ON p.brand_id = b.brand_id 
+                            WHERE p.name LIKE ? OR p.description LIKE ?");
     $stmt->execute(["%$search%", "%$search%"]);
 } else {
-    $stmt = $pdo->query("SELECT * FROM products");
+    $stmt = $pdo->query("SELECT p.*, c.name AS category_name, b.name AS brand_name 
+                          FROM products p 
+                          LEFT JOIN categories c ON p.category_id = c.category_id 
+                          LEFT JOIN brands b ON p.brand_id = b.brand_id");
 }
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
@@ -25,6 +32,35 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Custom styles for 3D product cards */
+        .product-card {
+            background-color: #ffffff;
+            border-radius: 10px; /* Rounded corners */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+            transition: transform 0.3s, box-shadow 0.3s; /* Smooth transition for hover effect */
+            margin-bottom: 20px; /* Space between cards */
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px); /* Lift effect on hover */
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2); /* Enhanced shadow on hover */
+        }
+
+        .product-image {
+            border-top-left-radius: 10px; /* Match card's rounded corners */
+            border-top-right-radius: 10px; /* Match card's rounded corners */
+        }
+
+        .product-title {
+            font-size: 1.5em; /* Larger font size for title */
+        }
+
+        .product-price {
+            color: #28a745; /* Green color for price */
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
@@ -47,12 +83,14 @@ $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php if (count($products) > 0): ?>
             <?php foreach ($products as $product): ?>
                 <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <img src="<?php echo htmlspecialchars($product['main_image']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                    <div class="product-card"> <!-- Use the new product-card class -->
+                        <img src="<?php echo htmlspecialchars($product['main_image']); ?>" class="card-img-top product-image" alt="<?php echo htmlspecialchars($product['name']); ?>">
                         <div class="card-body">
-                            <h5 class="card-title"><?php echo htmlspecialchars($product['name']); ?></h5>
+                            <h5 class="card-title product-title"><?php echo htmlspecialchars($product['name']); ?></h5>
                             <p class="card-text"><?php echo htmlspecialchars($product['description']); ?></p>
-                            <p class="card-text">$<?php echo htmlspecialchars($product['price']); ?></p>
+                            <p class="card-text product-price">$<?php echo htmlspecialchars($product['price']); ?></p>
+                            <p class="card-text"><strong>Category:</strong> <?php echo htmlspecialchars($product['category_name']); ?></p>
+                            <p class="card-text"><strong>Brand:</strong> <?php echo htmlspecialchars($product['brand_name']); ?></p>
                             <a href="product_details.php?id=<?php echo $product['product_id']; ?>" class="btn btn-primary">View Details</a>
                         </div>
                     </div>

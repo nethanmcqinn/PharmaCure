@@ -8,12 +8,21 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
+// Fetch categories and brands for the dropdowns
+$stmtCategories = $pdo->query("SELECT * FROM categories");
+$categories = $stmtCategories->fetchAll(PDO::FETCH_ASSOC);
+
+$stmtBrands = $pdo->query("SELECT * FROM brands");
+$brands = $stmtBrands->fetchAll(PDO::FETCH_ASSOC);
+
 // Process form submission when adding a new product
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = $_POST['name'];
     $description = $_POST['description'];
     $price = $_POST['price'];
     $stock_quantity = $_POST['stock_quantity'];
+    $category_id = $_POST['category_id']; // Get selected category
+    $brand_id = $_POST['brand_id']; // Get selected brand
 
     // Handle file upload
     $imagePath = null;
@@ -39,9 +48,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Insert new product into the database
     if (empty($error)) {
-        $stmtInsert = $pdo->prepare("INSERT INTO products (name, description, price, stock_quantity, main_image, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())");
+        $stmtInsert = $pdo->prepare("INSERT INTO products (name, description, price, stock_quantity, main_image, category_id, brand_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())");
         
-        if ($stmtInsert->execute([$name, $description, $price, $stock_quantity, $imagePath])) {
+        if ($stmtInsert->execute([$name, $description, $price, $stock_quantity, $imagePath, $category_id, $brand_id])) {
             $success = "Product added successfully!";
         } else {
             $error = "Failed to add product. Please try again.";
@@ -95,6 +104,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
 
         <div class="form-group">
+            <label for="category_id">Category:</label>
+            <select name="category_id" class="form-control" required>
+                <option value="">Select Category</option>
+                <?php foreach ($categories as $category): ?>
+                    <option value="<?php echo htmlspecialchars($category['category_id']); ?>"><?php echo htmlspecialchars($category['name']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="brand_id">Brand:</label>
+            <select name="brand_id" class="form-control" required>
+                <option value="">Select Brand</option>
+                <?php foreach ($brands as $brand): ?>
+                    <option value="<?php echo htmlspecialchars($brand['brand_id']); ?>"><?php echo htmlspecialchars($brand['name']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="form-group">
             <label for="image">Product Image:</label>
             <input type="file" name="image" class="form-control-file" accept=".jpg,.jpeg,.png,.gif"> <!-- Allow specific image types -->
         </div>
@@ -102,11 +131,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <button type="submit" class="btn btn-primary">Add Product</button>
     </form>
 </div>
-   
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="../cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="../stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 </body>
-</html> 
+</html>
