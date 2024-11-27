@@ -52,6 +52,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
     header("Location: admin_dashboard.php"); // Redirect back to the dashboard after cancellation
     exit();
 }
+
+// Handle review deletion
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_review_id'])) {
+    $deleteReviewId = $_POST['delete_review_id'];
+
+    // Delete the review from the database
+    $stmtDeleteReview = $pdo->prepare("DELETE FROM reviews WHERE review_id = ?");
+    $stmtDeleteReview->execute([$deleteReviewId]);
+
+    header("Location: admin_dashboard.php"); // Redirect back to the dashboard after deletion
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -202,6 +215,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
             <?php endif; ?>
         </tbody>
     </table>
+    <h2>User Reviews</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Review ID</th>
+            <th>Product Name</th>
+            <th>User Name</th>
+            <th>Review Text</th>
+            <th>Created At</th>
+            <th>Actions</th> <!-- Actions Column for Delete -->
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (count($reviews) > 0): ?>
+            <?php foreach ($reviews as $review): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($review['review_id']); ?></td>
+                    <td><?php echo htmlspecialchars($review['product_name']); ?></td>
+                    <td><?php echo htmlspecialchars($review['user_name']); ?></td>
+                    <td><?php echo nl2br(htmlspecialchars($review['review_text'])); ?></td>
+                    <td><?php echo htmlspecialchars($review['created_at']); ?></td>
+                    <td>
+                        <!-- Delete Review Form -->
+                        <form method="POST" action="" class="d-inline">
+                            <input type="hidden" name="delete_review_id" value="<?php echo htmlspecialchars($review['review_id']); ?>">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr><td colspan="6">No reviews found.</td></tr>
+        <?php endif; ?>
+    </tbody>
+</table>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="../cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>

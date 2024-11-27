@@ -12,15 +12,7 @@
                 <a class="nav-link" href="../public/products.php">Products</a>
             </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="../public/about.php">About Us</a>
-            </li>
-            
-            <li class="nav-item">
-                <a class="nav-link" href="../public/contact.php">Contact Us</a>
-            </li>
-
-            <!-- Add Your Cart link -->
+                       <!-- Add Your Cart link -->
             <li class="nav-item">
                 <a class="nav-link" href="../public/cart.php">Your Cart</a> <!-- Link to cart page -->
             </li>

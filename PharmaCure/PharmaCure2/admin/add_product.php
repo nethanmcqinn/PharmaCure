@@ -62,6 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <div class="container mt-4">
     <h1>Add New Product</h1>
+    
+    <a href="admin_dashboard.php" class="btn btn-secondary">Back to Dashboard</a>
 
     <?php if (isset($error)): ?>
         <div class="alert alert-danger"><?php echo htmlspecialchars($error); ?></div>
@@ -100,10 +102,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <button type="submit" class="btn btn-primary">Add Product</button>
     </form>
 </div>
+   
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="../cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="../stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 </body>
-</html>
+</html> 
